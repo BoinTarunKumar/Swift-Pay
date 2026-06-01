@@ -1,0 +1,84 @@
+INSERT INTO accounts
+(
+    user_id,
+    balance,
+    currency
+)
+VALUES
+(
+    1001,
+    100000.00,
+    'INR'
+),
+(
+    1002,
+    50000.00,
+    'INR'
+),
+(
+    1003,
+    25000.00,
+    'INR'
+),
+(
+    1004,
+    75000.00,
+    'INR'
+);
+
+INSERT INTO payments
+(
+    transaction_id,
+    sender_id,
+    receiver_id,
+    amount,
+    currency,
+    status
+)
+VALUES
+(
+    'TXN-DEMO-001',
+    1001,
+    1002,
+    1000.00,
+    'INR',
+    'COMPLETED'
+);
+
+INSERT INTO ledger_entries
+(
+    transaction_id,
+    account_id,
+    entry_type,
+    amount
+)
+VALUES
+(
+    'TXN-DEMO-001',
+    1,
+    'DEBIT',
+    1000.00
+),
+(
+    'TXN-DEMO-001',
+    2,
+    'CREDIT',
+    1000.00
+);
+
+INSERT INTO payment_analytics
+(
+    transaction_id,
+    sender_id,
+    receiver_id,
+    amount,
+    currency
+)
+VALUES
+(
+    'TXN-DEMO-001',
+    1001,
+    1002,
+    1000.00,
+    'INR'
+);

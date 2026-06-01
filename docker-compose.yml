@@ -1,0 +1,102 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: swiftpay-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: swiftpay
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
+
+  redis:
+    image: redis:7
+    container_name: swiftpay-redis
+    ports:
+      - "6379:6379"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: swiftpay-kafka
+
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+      KAFKA_NODE_ID: 1
+
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+
+      KAFKA_LISTENERS: >
+        PLAINTEXT://:9092,
+        CONTROLLER://:29093
+
+      KAFKA_ADVERTISED_LISTENERS: >
+        PLAINTEXT://localhost:9092
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >
+        CONTROLLER:PLAINTEXT,
+        PLAINTEXT:PLAINTEXT
+
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/gateway.Dockerfile
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  ledger-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/ledger.Dockerfile
+
+    ports:
+      - "8081:8081"
+
+    depends_on:
+      - postgres
+      - kafka
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/analytics.Dockerfile
+
+    ports:
+      - "8082:8082"
+
+    depends_on:
+      - postgres
+      - kafka
+
+volumes:
+  postgres-data:
